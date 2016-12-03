@@ -1,7 +1,10 @@
 import os
 import pyjsonrpc
 import sys
+import json
+import re
 
+from bson.json_util import dumps
 #import common package in parent directory
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'common'))
 
@@ -25,11 +28,13 @@ class RequestHandler(pyjsonrpc.HttpRequestHandler):
         db = mongodb_client.getDB()
         if query.isdigit():
             res = db[PROPERTY_TABLE_NAME].find({'zipcode': query})
+            res = json.loads(dumps(res))
         else:
             city = query.split(',')[0].strip()
             state = query.split(',')[1].strip()
             #TODO search in DB
             res = db[PROPERTY_TABLE_NAME].find()
+            res = json.loads(dumps(res))
         return res
 
 http_server = pyjsonrpc.ThreadingHttpServer(
