@@ -1,7 +1,16 @@
+import os
 import pyjsonrpc
+import sys
+
+#import common package in parent directory
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'common'))
+
+import mongodb_client
 
 SERVER_HOST = 'localhost'
 SERVER_PORT = 4040
+
+PROPERTY_TABLE_NAME = 'property'
 
 class RequestHandler(pyjsonrpc.HttpRequestHandler):
     '''Test method'''
@@ -12,14 +21,16 @@ class RequestHandler(pyjsonrpc.HttpRequestHandler):
 
     @pyjsonrpc.rpcmethod
     def searchArea(self, query):
+        res = []
+        db = mongodb_client.getDB()
         if query.isdigit():
-            pass
-            #TODO search in DB
+            res = db[PROPERTY_TABLE_NAME].find({'zipcode': query})
         else:
             city = query.split(',')[0].strip()
             state = query.split(',')[1].strip()
             #TODO search in DB
-        return ["Houser_1","Xondo_2"]
+            res = db[PROPERTY_TABLE_NAME].find()
+        return res
 
 http_server = pyjsonrpc.ThreadingHttpServer(
         server_address =(SERVER_HOST,SERVER_PORT),
