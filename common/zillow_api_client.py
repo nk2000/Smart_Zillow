@@ -7,9 +7,12 @@ from xmljson import badgerfish as bf
 from xml.etree.ElementTree import fromstring
 
 ZILLOW_ENDPOINT = 'http://www.zillow.com/webservice'
-GET_SEARCH_RESULTS_API_NAME = 'GetSearchResults.htm'
 
-ZWS_ID = '''X1-ZWz1fjzhaag64r _6ed93'''
+GET_SEARCH_RESULTS_API_NAME = 'GetSearchResults.htm'
+GET_UPDATED_PROPERTY_DETAILS_API_NAME = 'GetUpdatedPropertyDetails.htm'
+GET_COMPS_API_NAME = 'GetComps.htm'
+
+ZWS_ID = '''X1-ZWz1fjzhaag64r_6ed93'''
 
 def build_url(api_name):
     return '%s/%s' %(ZILLOW_ENDPOINT.strip('/'),api_name.strip('/'))
@@ -22,17 +25,17 @@ def getSearchResults(address, citystatezip, rentzestimate=False):
     'citystatezip':citystatezip,
     'rentzestimate':rentzestimate
     }
-
-    response = requests.get(build_url(GET_SEARCH_RESULTS_API_NAME))
+    print  build_url(GET_COMPS_API_NAME)
+    response = requests.get(build_url(GET_SEARCH_RESULTS_API_NAME),params=payload)
+    print 'XML'
+    print response
     #thransform XML to JSON
     #dumps thransform JSON to String
     #loads thransform String to JSON
     res_json = loads(dumps(bf.data(fromstring(response.text))))
+    print 'JSON'
     print res_json
     #Extract info from response
     for key in res_json:
         print key
-        if(res_json[key] is not None and res_json[key]['response'] is not None and res_json[key]['response']['results'] is not None):
-            return res_json[key]['response']['results']['result']
-        else:
-            return {}
+

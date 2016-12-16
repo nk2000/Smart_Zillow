@@ -1,19 +1,22 @@
 doctype html
 html
-
   head
     title= title
     link(rel='stylesheet', href='/bootstrap-3.3.7-dist/css/bootstrap.min.css')
     link(rel='stylesheet', href='/bootstrap-3.3.7-dist/css/bootstrap-theme.min.css')
 
   body
-      .navbar-fixed-top(role='navigation')
-      ul.nav.nav-tabs.pull-right
-        li.active
-          a(href="#") main page
-        li
-          a(href="#") lianjie
-        li
-          a(href="#") snihao
+      form.form-horizontal(role = "form")
+        .form-group
+          label.col-md-2.control-label(for="firstanme") name
+          .col-md-10
+            input.form-control#first(type="text",placeholder="please input your name")
+        .form-group
+          label.col-md-2.control-label(for="lastname") Family name
+          .col-md-10
+            input.form-control#lastname(type="text",placeholder="please input your family name")
+
+
+
 
 
