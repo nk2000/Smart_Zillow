@@ -32,8 +32,10 @@ class RequestHandler(pyjsonrpc.HttpRequestHandler):
         else:
             city = query.split(',')[0].strip()
             state = query.split(',')[1].strip()
-            #TODO search in DB
-            res = db[PROPERTY_TABLE_NAME].find()
+            # Use regular expression to do case-insensitive search.
+            res = db[PROPERTY_TABLE_NAME].find({'city': re.compile(city, re.IGNORECASE),
+                                                'state': re.compile(state, re.IGNORECASE)})
+            #res = db[PROPERTY_TABLE_NAME].find()
             res = json.loads(dumps(res))
         return res
 

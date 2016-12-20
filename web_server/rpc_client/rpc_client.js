@@ -15,6 +15,7 @@ function add(a, b, callback){
       callback(response);
   });
 }
+//
 
 function searchArea(query, callback){
   client.request('searchArea', [query], function(err, error, response){
