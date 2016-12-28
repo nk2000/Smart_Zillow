@@ -11,7 +11,6 @@ TITLE = 'Smart Zillow';
 router.get('/', function(req, res, next) {
   var user = checkLoggedIn(req, res)
   res.render('index', { title: TITLE, logged_in_user: user });
-  console.log(TITLE)
 });
 
 /* Search page */
@@ -54,6 +53,11 @@ router.get('/detail', function(req, res, next) {
       property = response;
     }
 
+    // Handle predicted value
+    var predicted_value = parseInt(property['predicted_value']);
+    var list_price = parseInt(property['list_price']);
+    property['predicted_change'] = ((predicted_value - list_price) / list_price * 100).toFixed(2);
+
     // Add thousands separators for numbers.
     addThousandSeparator(property);
 
@@ -81,8 +85,7 @@ router.get('/login', function(req, res, next) {
 router.post('/login', function(req, res, next) {
   var email = req.body.email;
   var password = req.body.password;
-  console.log(email)
-  console.log(password)
+
   User.find({ email : email }, function(err, users) {
     console.log(users);
     if (err) throw err;
@@ -160,24 +163,24 @@ function checkLoggedIn(req, res) {
 }
 
 function splitFacts(property, field_name) {
-  facts_groups = []
+  facts_groups = [];
   group_size = property[field_name].length / 3;
-  facts_groups.push(property[field_name].slice(0, group_size))
-  facts_groups.push(property[field_name].slice(group_size, group_size + group_size))
-  facts_groups.push(property[field_name].slice(group_size + group_size))
-  property[field_name] = facts_groups
+  facts_groups.push(property[field_name].slice(0, group_size));
+  facts_groups.push(property[field_name].slice(group_size, group_size + group_size));
+  facts_groups.push(property[field_name].slice(group_size + group_size));
+  property[field_name] = facts_groups;
 }
 
 function addThousandSeparatorForSearchResult(searchResult) {
   for (i = 0; i < searchResult.length; i++) {
-    addThousandSeparator(searchResult[i])
+    addThousandSeparator(searchResult[i]);
   }
 }
 
 function addThousandSeparator(property) {
-  property['list_price'] = numberWithCommas(property['list_price'])
-  property['size'] = numberWithCommas(property['size'])
-  property['predicted_value'] = numberWithCommas(property['predicted_value'])
+  property['list_price'] = numberWithCommas(property['list_price']);
+  property['size'] = numberWithCommas(property['size']);
+  property['predicted_value'] = numberWithCommas(property['predicted_value']);
 }
 
 function numberWithCommas(x) {
