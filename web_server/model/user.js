@@ -4,9 +4,10 @@ var Schema = mongoose.Schema;
 
 //Create a user schema.
 var userSchema = new Schema({
-  email:{type:String,required:true,unique:
+    email:{type:String,required:true,unique:
     true},
     password:{type:String,required:true},
+    emailSend_permission:{type:Boolean,default:true},
     created_at:Date,
     updated_at:Date
 });
