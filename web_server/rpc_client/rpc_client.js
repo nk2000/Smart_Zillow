@@ -60,11 +60,29 @@ function getDetailsByZpid(zpid, callback) {
     });
 }
 
+function listItems(email,callback) {
+    client.request('getUserList', [email], function(err, error, response) {
+        if (err) throw err;
+        console.log(response);
+        callback(response);
+    });
+}
+
+function deleteItem(email,zpid,callback) {
+    client.request('deleteItem', [email,zpid], function(err, error, response) {
+        if (err) throw err;
+        console.log(response);
+        callback(response);
+    });
+}
+
 module.exports = {
     add : add,
     searchByAddress : searchByAddress,
     searchAreaByZip : searchAreaByZip,
     searchAreaByCityState : searchAreaByCityState,
     searchArea : searchArea,
-    getDetailsByZpid : getDetailsByZpid
+    getDetailsByZpid : getDetailsByZpid,
+    listItems: listItems,
+    deleteItem: deleteItem
 };

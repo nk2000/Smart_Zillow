@@ -50,6 +50,13 @@ class RequestHandler(pyjsonrpc.HttpRequestHandler):
         print "getDetailsByZillowId() gets called with zpid=[%s] and get_prediction=[%s]" % (str(zpid), str(get_prediction))
         return operations.getDetailsByZpid(zpid, get_prediction)
 
+    @pyjsonrpc.rpcmethod
+    def getUserList(self,email):
+        return operations.getUserList(email)
+
+    @pyjsonrpc.rpcmethod
+    def deleteItem(self,email,zpid):
+        return operations.deleteItem(email,zpid)
 
 # Threading HTTP-Server
 http_server = pyjsonrpc.ThreadingHttpServer(

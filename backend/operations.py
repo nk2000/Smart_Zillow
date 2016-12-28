@@ -20,7 +20,7 @@ SERVER_PORT = 4040
 
 DATA_FETCHER_QUEUE_NAME = 'dataFetcherTaskQueue'
 PROPERTY_TABLE_NAME = 'property'
-
+USERLIST_TABLE_NAME = 'userlists'
 """Search a property with specific address and citystatezip"""
 def searchByAddress(address, citystatezip):
     res = zillow_api_client.getSearchResults(address, citystatezip)
@@ -105,3 +105,12 @@ def findProperyByZipcode(zipcode):
     db = mongodb_client.getDB()
     properties = list(db[PROPERTY_TABLE_NAME].find({'zipcode': zipcode, 'is_for_sale': True}))
     return [x['zpid'] for x in properties]
+
+def getUserList(email):
+    db = mongodb_client.getDB('real-estate-smart-view')
+    userlists = json.loads(dumps(db[USERLIST_TABLE_NAME].find({'email':email})))
+    return userlists
+def deleteItem(email,zpid):
+    db = mongodb_client.getDB('real-estate-smart-view')
+    result = db[USERLIST_TABLE_NAME].delete_one({'email':email,'zpid':zpid})
+    return result.deleted_count

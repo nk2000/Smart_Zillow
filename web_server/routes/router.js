@@ -2,6 +2,7 @@ var express = require('express');
 var passwordHash = require('password-hash');
 var session = require('client-sessions');
 var User = require('../model/user');
+var User_watchlist = require('../model/user_watchlist');
 var rpc_client = require('../rpc_client/rpc_client');
 var router = express.Router();
 
@@ -38,10 +39,41 @@ router.get('/search', function(req, res, next) {
   });
 });
 
+router.get('/watchlist', function(req, res, next) {
+  var user = checkLoggedIn(req, res)
+  var email = req.session.user
+  rpc_client.listItems(email,function(response) {
+    results = [];
+    if (response == undefined || response === null) {
+      console.log("No results found");
+    } else {
+      results = response;
+      result_num = results.length;
+      res.render('watchlist', { title: TITLE, logged_in_user: user,results:results,result_num:result_num});
+    }
+  })
+
+});
+
+router.post('/watchlist', function(req, res, next) {
+  var user = checkLoggedIn(req, res)
+  var zpid = req.body.zpid
+  var email = req.session.user
+  console.log("delelte" + zpid)
+  rpc_client.deleteItem(email,zpid,function(response) {
+    results = [];
+    if (response == undefined || response === null) {
+      console.log("No results found");
+    } else {
+      res.redirect('/watchlist');
+    }
+  })
+});
+
 /* Property detail page*/
 router.get('/detail', function(req, res, next) {
   logged_in_user = checkLoggedIn(req, res)
-
+  var email = req.session.user
   var id = req.query.id
   console.log("detail for id: " + id)
 
@@ -65,6 +97,54 @@ router.get('/detail', function(req, res, next) {
     splitFacts(property, 'facts');
     splitFacts(property, 'additional_facts');
 
+    var zpid = property.zpid;
+    var street_address = property.street_address;
+    var city= property.city;
+    var state= property.state;
+    var zipcode= property.zipcode;
+    var property_type= property.property_type;
+    var bedroom= property.bedroom;
+    var bathroom= property.bathroom;
+    var size= property.size;
+    var is_for_sale= property.is_for_sale;
+    var list_price= property.list_price;
+    console.log("This is zpid " + zpid)
+    console.log("This is zpid " + street_address)
+    console.log("This is zpid " + city)
+    console.log("This is zpid " + state)
+    console.log("This is zpid " + zipcode)
+    console.log("This is zpid " + property_type)
+    console.log("This is zpid " + bedroom)
+    console.log("This is zpid " + bathroom)
+    console.log("This is zpid " + size)
+    console.log("This is zpid " + is_for_sale)
+    console.log("This is zpid " + list_price)
+    User_watchlist.find({ email : email,zpid: zpid }, function(err, users) {
+    if (err) throw err;
+    if (users.length > 0) {
+      console.log("UserList found for: " + email);
+    } else {
+        var newUserList = User_watchlist({
+          email : email,
+          zpid : zpid,
+          street_address: street_address,
+          city: city,
+          state: state,
+          zipcode: zipcode,
+          property_type: property_type,
+          bedroom: bedroom,
+          bathroom: bathroom,
+          size: size,
+          is_for_sale: is_for_sale,
+          list_price: list_price,
+        });
+        // Save the user.
+        newUserList.save(function(err) {
+          if (err) throw err;
+          console.log('UserList created!');
+        });
+    }
+  });
 
     res.render('detail',
       {
