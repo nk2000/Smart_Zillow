@@ -4,7 +4,16 @@ var session = require('client-sessions');
 var User = require('../model/user');
 var User_watchlist = require('../model/user_watchlist');
 var rpc_client = require('../rpc_client/rpc_client');
+var redis = require('redis');
 var router = express.Router();
+
+
+//creat a new redis client and connect to our local redis instance
+var client = redis.createClient();
+
+client.on('error',function(err){
+  console.log("Error " + err);
+});
 
 TITLE = 'Smart Zillow';
 
@@ -14,44 +23,110 @@ router.get('/', function(req, res, next) {
   res.render('index', { title: TITLE, logged_in_user: user });
 });
 
+router.get('/setting', function(req, res, next) {
+  var user = checkLoggedIn(req, res)
+  var email = req.session.user
+  User.findOne({ email : email },function(err, user) {
+    if (err) throw err;
+    if (user.length > 0) {
+      console.log("UserList found for: " + email);
+    } else {
+      res.render('setting', { title: TITLE, Permission: user['emailSend_permission'],logged_in_user: user});
+    }
+  });
+});
+
+router.post('/closeEmailPermission', function(req, res, next) {
+  var user = checkLoggedIn(req, res)
+  var email = req.session.user
+  User.update({ email : email }, {$set:{emailSend_permission:false}}, function(err) {
+    if (err) throw err;
+    res.redirect('/setting');
+  });
+});
+
+router.post('/openEmailPermission', function(req, res, next) {
+  var user = checkLoggedIn(req, res)
+  var email = req.session.user
+  User.update({ email : email }, {$set:{emailSend_permission:true}}, function(err) {
+    if (err) throw err;
+    res.redirect('/setting');
+  });
+});
+
 /* Search page */
 router.get('/search', function(req, res, next) {
   var query = req.query.search_text;
   console.log("search text: " + query)
+  console.log(req.params)
+  var params = req.params
 
-  rpc_client.searchArea(query, function(response) {
-    results = [];
-    if (response == undefined || response === null) {
-      console.log("No results found");
-    } else {
-      results = response;
-    }
+  client.get(params,function(error,result){
+      if(result){
+        results = JSON.parse(result)
+        console.log("This is result "+results)
+        res.render('search_result',{
+          title: TITLE,
+          query: query,
+          results: results
+        })
+      }else{
+        rpc_client.searchArea(query, function(response) {
+        results = [];
+        if (response == undefined || response === null) {
+          console.log("No results found");
+        } else {
+          results = response;
+        }
 
-    // Add thousands separators for numbers.
-    addThousandSeparatorForSearchResult(results)
+        // Add thousands separators for numbers.
+        addThousandSeparatorForSearchResult(results);
 
-    res.render('search_result', {
-      title: TITLE,
-      query: query,
-      results: results
-    });
+        value = JSON.stringify(results)
+        client.set(params,value);
+        console.log("This is results "+results)
+        res.render('search_result', {
+          title: TITLE,
+          query: query,
+          results: results
+        });
 
-  });
+      });
+      }
+  })
+
+
 });
 
 router.get('/watchlist', function(req, res, next) {
   var user = checkLoggedIn(req, res)
   var email = req.session.user
-  rpc_client.listItems(email,function(response) {
-    results = [];
-    if (response == undefined || response === null) {
-      console.log("No results found");
-    } else {
-      results = response;
-      result_num = results.length;
-      res.render('watchlist', { title: TITLE, logged_in_user: user,results:results,result_num:result_num});
-    }
+  console.log("req.params are " + req.params)
+  var params = req.params
+
+  client.get(params,function(error,result){
+      if(result){
+        result = JSON.parse(result)
+        result_num = result.length;
+        console.log("This is result "+result)
+        res.render('watchlist', { title: TITLE, logged_in_user: user,results:result,result_num:result_num});
+      }else{
+        rpc_client.listItems(email,function(response) {
+        results = [];
+        if (response == undefined || response === null) {
+          console.log("No results found");
+        } else {
+          results = response;
+          }
+          value = JSON.stringify(results)
+          client.set(params,value);
+          result_num = results.length;
+          console.log("This is results: " + results)
+          res.render('watchlist', { title: TITLE, logged_in_user: user,results:results,result_num:result_num});
+        })
+      }
   })
+
 
 });
 
